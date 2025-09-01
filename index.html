@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean the Park!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Clean the Park!</h1>
+    <div id="bin">🗑️</div>
+    <div id="message"></div>
+    <div id="level"></div>
+    <div id="startScreen">
+  <h1>Welcome to the Clean the Park Game! 🌳</h1>
+<p>Collect the trash and make the park clean.</p>
+<button id="startBtn">Start Game</button>
+</div>
+<div id="endGameMessage">Congratulations! The park is clean.</div>
+<button id="restartBtn">Restart Game</button>
+  <script>
+let level = 1;
+let trashCount = 3;
+let recycled = 0;
+const trashTypes = ["🍌","🍕","💩","🥑","🤡"];
+const maxLevel = 5;
+
+const bin = document.getElementById("bin");
+const message = document.getElementById("message");
+const levelDisplay = document.getElementById("level");
+const endGameMessage = document.getElementById("endGameMessage");
+const restartBtn = document.getElementById("restartBtn");
+
+// Sounds
+const startSound = new Audio('game-start-6104.mp3');
+const trashSound = new Audio('mixkit-retro-game-notification-212 (2).wav');
+const levelUpSound = new Audio('mixkit-quick-win-video-game-notification-269.wav');
+const endGameSound = new Audio('victory-chime-366449.mp3');
+
+//start screen
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+
+startBtn.addEventListener('click', () => {
+    startScreen.style.display = 'none';
+    startSound.play();
+    startGame();
+});
+
+function startGame() {
+    level = 1;
+    trashCount = 3;
+    recycled = 0;
+    message.style.display = "block";
+    levelDisplay.style.display = "block";
+    bin.style.display = "block";
+    endGameMessage.style.display = "none";
+    restartBtn.style.display = "none";
+
+    levelDisplay.textContent = "Level " + level;
+    message.textContent = "Grab the trash and throw it into the bin! 🗑️";
+
+
+    createTrash(trashCount);
+}
+
+function createTrash(num) {
+    // clean the last trash
+    document.querySelectorAll(".trash").forEach(t => t.remove());
+
+    for (let i = 0; i < num; i++) {
+        const trash = document.createElement("div");
+        trash.classList.add("trash");
+        trash.textContent = trashTypes[Math.floor(Math.random() * trashTypes.length)];
+        
+        let size = 40 - level * 2;
+        if (size < 20) size = 20;
+        trash.style.fontSize = size + "px";
+        trash.style.left = Math.random() * 80 + "vw";
+        trash.style.top = Math.random() * 60 + "vh";
+        trash.draggable = true;
+
+        trash.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", "trash");
+            e.dataTransfer.setDragImage(trash, 10, 10);
+            trash.dataset.dragging = "true";
+        });
+
+        document.body.appendChild(trash);
+    }
+}
+
+// manage bin
+bin.addEventListener("dragover", (e) => e.preventDefault());
+bin.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const dragging = document.querySelector(".trash[data-dragging='true']");
+    if (dragging) {
+        dragging.classList.add("collected");
+        setTimeout(() => dragging.remove(), 300);
+
+        recycled++;
+        trashSound.play();
+       message.textContent = "Great! You collected a piece of trash 🌟";
+        bin.style.transform = "scale(1.2)";
+        setTimeout(() => bin.style.transform = "scale(1)", 300);
+
+        if (recycled === trashCount) {
+            setTimeout(() => {
+                levelUpSound.play();
+                nextLevel();
+            }, 500);
+        }
+    }
+});
+
+// next level
+function nextLevel() {
+    level++;
+    recycled = 0;
+    trashCount += 2;
+
+    if (level > maxLevel) {
+        endGame();
+        return;
+    }
+
+    levelDisplay.textContent = "Level " + level;
+    message.textContent = "Next Level! 🌟 Collect more trash";
+    createTrash(trashCount);
+}
+
+// end Game
+function endGame() {
+    message.style.display = "none";
+    levelDisplay.style.display = "none";
+    bin.style.display = "none";
+    document.querySelectorAll(".trash").forEach(t => t.remove());
+    endGameMessage.style.display = "block";
+    restartBtn.style.display = "inline-block";
+    endGameSound.play();
+}
+
+// Restart Game
+restartBtn.addEventListener("click", startGame);
+</script>
+
+</body>
+</html>
